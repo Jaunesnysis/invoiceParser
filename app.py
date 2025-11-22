@@ -88,7 +88,7 @@ def extract_invoice_meta_basic(ocr_text: str):
     return invoice_number, invoice_date, client_name
 
 
-# ---------- SPECIALISED PARSERS FOR YOUR INVOICES ----------
+# ---------- cia special for bestdrive ir ndi padaryti (jie musu main examples)  ----------
 
 def _parse_bestdrive_items(ocr_text: str,
                            invoice_number: str,
@@ -109,10 +109,10 @@ def _parse_bestdrive_items(ocr_text: str,
     items = []
 
     # Regex:
-    #   name      -> everything up to quantity
-    #   qty       -> 2,00
-    #   unit      -> 1 842,00
-    #   total(opt)-> 3 684,00
+    #   name      
+    #   kiekis
+    #   unit      1 842,00
+    #   total(opt) 3 684,00
     line_re = re.compile(
         r"^(?P<name>.+?)\s+"
         r"(?P<qty>[\d,]+)\s+EA\s+"
@@ -127,9 +127,9 @@ def _parse_bestdrive_items(ocr_text: str,
 
         name = m.group("name")
         qty_str = m.group("qty")
-        total_str = m.group("total") or m.group("unit")  # fallback if no total
+        total_str = m.group("total") or m.group("unit")  # fallbackas
 
-        # Normalise numbers: remove spaces, change comma to dot
+        # Normalizacija 
         quantity = qty_str.replace(" ", "").replace(".", "").replace(",", ".")
         product_price = total_str.replace(" ", "").replace(".", "", 0).replace(",", ".")
 
@@ -162,7 +162,7 @@ def _parse_ndi_items(ocr_text: str,
       Dekkavgift PV/VV 4 20,00 80,00
     """
     def normalize_money(s: str) -> str:
-        # Remove thousand separators, convert comma to dot
+        # cia is comma i dot
         s = s.replace(" ", "")
         s = s.replace(".", "")
         s = s.replace(",", ".")
@@ -171,7 +171,7 @@ def _parse_ndi_items(ocr_text: str,
     lines = [l.strip() for l in ocr_text.splitlines() if l.strip()]
     items = []
 
-    # Main tire line: product-id + desc + qty + 'stk' + unit + discount + total
+    # Main tire linija
     tire_re = re.compile(
         r"^(?P<product_id>\d{8,})\s+"
         r"(?P<desc>.+?)\s+"
@@ -199,7 +199,7 @@ def _parse_ndi_items(ocr_text: str,
             qty_str = mt.group("qty")
             total_str = mt.group("total")
 
-            quantity = qty_str  # keep as integer-like string
+            quantity = qty_str  
             product_price = normalize_money(total_str)
 
             items.append({
@@ -266,6 +266,7 @@ def extract_line_items_local(ocr_text: str):
             return bd_items
 
     # -------------- Fallback: old generic heuristic --------------
+    #cia chatas pasiule bet idk kam honestly . ciuju kaip fallback
     items = []
     for raw_line in ocr_text.splitlines():
         line = raw_line.strip()
@@ -327,7 +328,7 @@ def extract_line_items_local(ocr_text: str):
     return items
 
 
-# ================== AI PARSING FUNCTION (CHATGPT) ==================
+# ================== AI parseris  (CHATGPT) ==================
 def extract_line_items_with_ai(ocr_text: str, client: OpenAI):
     """
     Send OCR text to ChatGPT and get line items as JSON.
@@ -435,14 +436,14 @@ uploaded_file = st.file_uploader(
     type=["pdf", "png", "jpg", "jpeg", "tif", "tiff", "webp", "zip"],
 )
 
-# Choose parsing method: Local (free) vs AI (ChatGPT)
+# pasirinkti buda
 parser_mode = st.radio(
     "Choose parsing method:",
     ["Local (free)", "AI (ChatGPT)"],
     index=0
 )
 
-# Only ask for API key if AI mode is selected
+# cia tik jei parsriniktas ai 
 client = None
 if parser_mode == "AI (ChatGPT)":
     api_key = st.text_input("Enter your OpenAI API key", type="password")
@@ -454,7 +455,7 @@ if parser_mode == "AI (ChatGPT)":
 if uploaded_file is not None:
 
     # ------------------------------------------------------------------
-    # =========== CASE 1: ZIP WITH MANY FILES ===========
+    # =========== CASE 1: ZIP su daug FILES ===========
     # ------------------------------------------------------------------
     if uploaded_file.name.lower().endswith(".zip"):
         st.write("📦 **ZIP file detected — will process all supported files inside it.**")
